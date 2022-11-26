@@ -6,6 +6,13 @@
 
 
 class FixedTaxpayer {
+  //@ invariant (this.isFemale == true <==> this.isMale == false);
+  //@ invariant (this.isMarried == false <==> this.spouse == null);
+  //@ invariant (this.spouse != null ==> this.isMale == this.spouse.isFemale);
+  //@ invariant (this.spouse != null ==> this.spouse.spouse == this);
+  //@ invariant (0 <= this.tax_allowance <= Integer.MAX_VALUE);
+  //@ invariant (this.age <= Integer.MAX_VALUE);
+
   /* isFemale is true iff the person is female */
   boolean isFemale;
 
@@ -17,7 +24,7 @@ class FixedTaxpayer {
   boolean isMarried; 
 
   /* Reference to spouse if person is married, null otherwise */
-  FixedTaxpayer spouse; 
+  /*@ nullable */ FixedTaxpayer spouse; 
 
   /* Constant default income tax allowance */
   static final int DEFAULT_ALLOWANCE = 5000;
@@ -30,40 +37,59 @@ class FixedTaxpayer {
 
   int income; 
 
-  Taxpayer(boolean babyboy, FixedTaxpayer ma, FixedTaxpayer pa) {
-    age = 0;
-    isMarried = false;
+  FixedTaxpayer mother;
+
+  FixedTaxpayer father;
+
+  FixedTaxpayer(boolean babyboy, FixedTaxpayer ma, FixedTaxpayer pa) {
+    this.age = 0;
+    this.isMarried = false;
     this.isMale = babyboy;
     this.isFemale = !babyboy;
-    mother = ma;
-    father = pa;
-    spouse = null;
-    income = 0;
-    tax_allowance = DEFAULT_ALLOWANCE;
-    /* The line below makes explicit the assumption that a new Taxpayer is not 
+    this.mother = ma;
+    this.father = pa;
+    this.spouse = null;
+    this.income = 0;
+    this.tax_allowance = FixedTaxpayer.DEFAULT_ALLOWANCE;
+    /* The line below makes explicit the assumption that a new FixedTaxpayer is not 
       * married to anyone yet*/
-    //@ assume (\forall FixedTaxpayer p; p.spouse != this); 
+    //@ assume (\forall FixedTaxpayer p; p.spouse == null && p.spouse != this); 
   } 
 
-  //@ requires new_spouse != null;
+  //@ requires (new_spouse != null && this.spouse == null && new_spouse.spouse == null);
   void marry(FixedTaxpayer new_spouse) {
-    spouse = new_spouse;
-    isMarried = true;
+    if (new_spouse == null || new_spouse.spouse != null || this.isMale != new_spouse.isFemale) return;
+    this.spouse = new_spouse;
+    this.isMarried = true;
+    new_spouse.spouse = this;
+    new_spouse.isMarried = true;
   }
   
+  //@ requires (this.spouse != null);
   void divorce() {
-    spouse.spouse = null;
-    spouse = null;
-    isMarried = false;
+    if (this.spouse == null) return;
+    this.spouse.isMarried = false;
+    this.spouse.spouse = null;
+    this.isMarried = false;
+    this.spouse = null;
   }
 
   /* Transfer part of tax allowance to own spouse */
+  //@ requires (this.spouse != null);
+  //@ requires (change > 0 && change <= this.tax_allowance && change <= Integer.MAX_VALUE - this.spouse.tax_allowance);
+  //@ ensures (this.tax_allowance + this.spouse.tax_allowance) == \old(this.tax_allowance + this.spouse.tax_allowance);
   void transferAllowance(int change) {
-    tax_allowance = tax_allowance - change;
-    spouse.tax_allowance = spouse.tax_allowance + change;
+    if (this.spouse == null) return;
+    if (change <= 0 || change > this.tax_allowance || change > Integer.MAX_VALUE - this.spouse.tax_allowance) return;
+    this.tax_allowance = this.tax_allowance - change;
+    this.spouse.tax_allowance = this.spouse.tax_allowance + change;
   }
 
+  //@ requires (this.age < Integer.MAX_VALUE);
+  //@ ensures (this.age == 65 && this.tax_allowance <= Integer.MAX_VALUE - 2000 ==> this.tax_allowance == \old(this.tax_allowance) + 2000);
   void haveBirthday() {
-    age++;
+    if (this.age < Integer.MAX_VALUE) age++;
+    else return;
+    if (this.age == 65 && this.tax_allowance <= Integer.MAX_VALUE - 2000) this.tax_allowance = this.tax_allowance + 2000;
   }
 }
