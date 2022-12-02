@@ -1,0 +1,1 @@
+To run openJML (esc) on FixedTaxapayer.java file: java -jar .\OJ\openjml.jar -esc -exec .\OJ\Solvers-windows\z3-4.7.1.exe .\FixedTaxpayer.java
