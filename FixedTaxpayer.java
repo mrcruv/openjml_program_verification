@@ -76,7 +76,6 @@ class FixedTaxpayer {
   //a person x can marry a person y if and only if either x and y are not married yet.*
   //@ requires new_spouse != null && this.spouse == null && new_spouse.spouse == null;
   void marry(FixedTaxpayer new_spouse) {
-    //if (new_spouse == null || this.spouse != null || new_spouse.spouse != null) return;
     if (this.isMale != new_spouse.isFemale) return;
     this.spouse = new_spouse; //beware: aliasing!
     this.isMarried = true;
@@ -89,7 +88,6 @@ class FixedTaxpayer {
   //a person x can divorce if and only if x's spouse is not null.*
   //@ requires this.spouse != null;
   void divorce() {
-    //if (this.spouse == null) return;
     this.tax_allowance = this.age < 65 ? FixedTaxpayer.DEFAULT_ALLOWANCE : FixedTaxpayer.ALLOWANCE_OAP;
     this.spouse.tax_allowance = this.spouse.age < 65 ? FixedTaxpayer.DEFAULT_ALLOWANCE : FixedTaxpayer.ALLOWANCE_OAP;
     this.spouse.isMarried = false;
@@ -110,10 +108,6 @@ class FixedTaxpayer {
   //2.2: married persons can pool their tax allowance, as long as the sum of their tax allowances remains the same.
   //@ ensures this.tax_allowance + this.spouse.tax_allowance == \old(this.tax_allowance) + \old(this.spouse.tax_allowance);
   void transferAllowance(int change) throws ArithmeticException {
-    //if (this.spouse == null) return;
-    //if (change <= 0 || change > this.tax_allowance) return;
-    //if (change + Integer.MIN_VALUE > this.tax_allowance) return;
-    //if (change > Integer.MAX_VALUE - this.spouse.tax_allowance) return;
     this.tax_allowance = this.tax_allowance - change;
     this.spouse.tax_allowance = this.spouse.tax_allowance + change;
   }
@@ -126,8 +120,6 @@ class FixedTaxpayer {
   //3.1: the new government introduces a measure that people aged 65 and over have a higher tax allowance of 7000.
   //@ ensures this.age == 65 ==> this.tax_allowance == \old(this.tax_allowance) + (FixedTaxpayer.ALLOWANCE_OAP - FixedTaxpayer.DEFAULT_ALLOWANCE);
   void haveBirthday() throws ArithmeticException {
-    //if (this.age > Integer.MAX_VALUE - 1) return;
-    //if (this.age == 64 && this.tax_allowance > Integer.MAX_VALUE - (FixedTaxpayer.ALLOWANCE_OAP - FixedTaxpayer.DEFAULT_ALLOWANCE)) return;
     this.age = this.age + 1;
     if (this.age == 65) this.tax_allowance = this.tax_allowance + (FixedTaxpayer.ALLOWANCE_OAP - FixedTaxpayer.DEFAULT_ALLOWANCE);
   }
