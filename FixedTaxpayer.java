@@ -4,7 +4,7 @@
   errors in code. 
  */
 
-
+//PLEASE NOTE: properties followed by '*' are additional sensible properties
 class FixedTaxpayer {
   //1.1: persons are either male or female.
   //@ invariant this.isFemale == true <==> this.isMale == false;
@@ -23,11 +23,13 @@ class FixedTaxpayer {
   //age must be non negative.*
   //@ invariant this.age >= 0;
 
-  //every person has an income tax allowance on which no tax is paid, there is a default tax allowance of 5000 per individual and only income above this amount is taxed.*
+  //2.1: every person has an income tax allowance on which no tax is paid, there is a default tax allowance of 5000 per individual and only income above this amount is taxed.*
+  //PLEASE NOTE: this property holds only for persons who are not married and whose age is strictly less than 65 years.
   //@ invariant this.spouse == null && this.age < 65 ==> this.tax_allowance == FixedTaxpayer.DEFAULT_ALLOWANCE;
 
-  //2.2: married persons can pool their tax allowance, as long as the sum of their tax allowances remains the same (below, this constraint is expressed as postcondition on method transferAllowance).
-  //3.1: the new government introduces a measure that people aged 65 and over have a higher tax allowance of 7000 (below, this constraint is expressed as postcondition on method haveBirthday).
+  //2.2: married persons can pool their tax allowance, as long as the sum of their tax allowances remains the same (below, this is also partially expressed as postcondition on method transferAllowance).
+  //3.1: the new government introduces a measure that people aged 65 and over have a higher tax allowance of 7000 (below, this is also partially expressed as postcondition on method haveBirthday).
+  //PLEASE NOTE: these properties are expressed through multiple invariants, one for each case.
   //@ invariant this.spouse == null && this.age >= 65 ==> this.tax_allowance == FixedTaxpayer.ALLOWANCE_OAP;
   //@ invariant this.spouse != null && this.age < 65 && this.spouse.age < 65 ==> this.tax_allowance + this.spouse.tax_allowance == (FixedTaxpayer.DEFAULT_ALLOWANCE + FixedTaxpayer.DEFAULT_ALLOWANCE);
   //@ invariant this.spouse != null && this.age >= 65 && this.spouse.age < 65 ==> this.tax_allowance + this.spouse.tax_allowance == (FixedTaxpayer.ALLOWANCE_OAP + FixedTaxpayer.DEFAULT_ALLOWANCE);
@@ -73,7 +75,7 @@ class FixedTaxpayer {
 
   //constraints to limit possible side-effects.*
   //@ assignable this.spouse, this.isMarried, this.spouse.spouse, this.spouse.isMarried;
-  //a person x can marry a person y if and only if either x and y are not married yet.*
+  //a person x can marry a person y if and only if either x and y are not married yet, otherwise divorce() method must be invoked before invoking marry(.).*
   //@ requires new_spouse != null && this.spouse == null && new_spouse.spouse == null;
   void marry(FixedTaxpayer new_spouse) {
     if (this.isMale != new_spouse.isFemale) return;
@@ -85,7 +87,7 @@ class FixedTaxpayer {
   
   //constraints to limit possible side-effects.*
   //@ assignable this.tax_allowance, this.spouse.tax_allowance, this.spouse.isMarried, this.spouse.spouse, this.isMarried, this.spouse;
-  //a person x can divorce if and only if x's spouse is not null.*
+  //a person x can divorce if and only if x's spouse is not null, otherwise marry(.) method must be invoked before inovking divorce().*
   //@ requires this.spouse != null;
   void divorce() {
     this.tax_allowance = this.age < 65 ? FixedTaxpayer.DEFAULT_ALLOWANCE : FixedTaxpayer.ALLOWANCE_OAP;
@@ -105,7 +107,7 @@ class FixedTaxpayer {
   //@ requires this.spouse != null;
   //a person x can transfer allowance only if change is non negative and not greater than x's tax allowance.*
   //@ requires change > 0 && change <= this.tax_allowance;
-  //2.2: married persons can pool their tax allowance, as long as the sum of their tax allowances remains the same.
+  //[additional 2.2: married persons can pool their tax allowance, as long as the sum of their tax allowances remains the same.]
   //@ ensures this.tax_allowance + this.spouse.tax_allowance == \old(this.tax_allowance) + \old(this.spouse.tax_allowance);
   void transferAllowance(int change) throws ArithmeticException {
     this.tax_allowance = this.tax_allowance - change;
@@ -117,7 +119,7 @@ class FixedTaxpayer {
   //@ requires this.age == 64 ==> this.tax_allowance <= Integer.MAX_VALUE - (FixedTaxpayer.ALLOWANCE_OAP - FixedTaxpayer.DEFAULT_ALLOWANCE);
   //constraints to limit possible side-effects.*
   //@ assignable this.age, this.tax_allowance;
-  //3.1: the new government introduces a measure that people aged 65 and over have a higher tax allowance of 7000.
+  //[additional 3.1: the new government introduces a measure that people aged 65 and over have a higher tax allowance of 7000.]
   //@ ensures this.age == 65 ==> this.tax_allowance == \old(this.tax_allowance) + (FixedTaxpayer.ALLOWANCE_OAP - FixedTaxpayer.DEFAULT_ALLOWANCE);
   void haveBirthday() throws ArithmeticException {
     this.age = this.age + 1;
