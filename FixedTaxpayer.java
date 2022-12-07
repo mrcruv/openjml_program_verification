@@ -1,7 +1,6 @@
 /* 
-  This assignment illustrates how specifications (invariants and 
-  preconditions)  written in a formal language can help in removing 
-  errors in code. 
+  Invariants are used to express constraints, when required.
+  Additional invariants, preconditions and postconditions are used to express additional properties or complementary with respect to required constraints, when needed.
  */
 
 //PLEASE NOTE: properties followed by '*' are additional sensible properties
@@ -25,6 +24,7 @@ class FixedTaxpayer {
 
   //2.1: every person has an income tax allowance on which no tax is paid, there is a default tax allowance of 5000 per individual and only income above this amount is taxed.*
   //PLEASE NOTE: this property holds only for persons who are not married and whose age is strictly less than 65 years.
+  //PLEASE NOTE: the constraint to check is incomplete and ambiguous (namely, how to tax a persons's income is not specified).
   //@ invariant this.spouse == null && this.age < 65 ==> this.tax_allowance == FixedTaxpayer.DEFAULT_ALLOWANCE;
 
   //2.2: married persons can pool their tax allowance, as long as the sum of their tax allowances remains the same (below, this is also partially expressed as postcondition on method transferAllowance).
